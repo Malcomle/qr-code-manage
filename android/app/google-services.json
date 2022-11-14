@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "463691080498",
+    "project_id": "qrcodemalcom",
+    "storage_bucket": "qrcodemalcom.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:463691080498:android:18a6c5b750f0f2eb276d2b",
+        "android_client_info": {
+          "package_name": "com.example.qrcode_control"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "463691080498-clsqe0biaon6slvedo8kl50kg8f9pksp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCI5Uu39jtjHMAfa6rFmC7Xqfc-XERLG7U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "463691080498-clsqe0biaon6slvedo8kl50kg8f9pksp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "463691080498-2su3kop88l9lmnbn33nlppsnsvg8ee7k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.qrcodeControl"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
