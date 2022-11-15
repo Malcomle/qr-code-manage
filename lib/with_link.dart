@@ -155,7 +155,7 @@ class _WithLinkState extends State<WithLink> {
             }
           }),
       const Text(
-        "Favories : ",
+        "Favoris : ",
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
       ),
       Divider(
@@ -202,6 +202,7 @@ class _WithLinkState extends State<WithLink> {
   }
 
   Future<RedirectModel> getData() async {
+    var contextData = _onLoading();
     await Firebase.initializeApp();
     var fbRedirect = await FirebaseFirestore.instance
         .collection("redirect")
@@ -220,6 +221,8 @@ class _WithLinkState extends State<WithLink> {
     var data = fbRedirect.data();
     RedirectModel redirectModel = RedirectModel.fromJson(data!);
     redirectInput.text = redirectModel.redirect!;
+
+    Navigator.pop(contextData);
     return redirectModel;
   }
 
@@ -229,11 +232,11 @@ class _WithLinkState extends State<WithLink> {
         .doc("AOWHcTNEqq1OMosU0Fav")
         .set({'redirect': "${redirectInput.value.text}"});
 
-    var getHistory = await FirebaseFirestore.instance
-        .collection("history")
-        .add({
+    var getHistory =
+        await FirebaseFirestore.instance.collection("history").add({
       "redirect": redirectInput.value.text,
-      "date": FieldValue.serverTimestamp()
+      "date": FieldValue.serverTimestamp(),
+      "type": "url"
     });
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -281,10 +284,11 @@ class _WithLinkState extends State<WithLink> {
   }
 
   Future<List<RedirectModel>> getHistory() async {
+    var url = "url";
     await Firebase.initializeApp();
     var getHistory = await FirebaseFirestore.instance
         .collection("history")
-        .orderBy("date", descending: true)
+        .where("type", isEqualTo: url)
         .limit(50)
         .get();
 
@@ -348,7 +352,20 @@ class _WithLinkState extends State<WithLink> {
       RedirectModel model = RedirectModel.fromJson(test);
       docsMap.add(model);
     });
-
     return docsMap;
+  }
+
+  BuildContext _onLoading() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Dialog(
+          backgroundColor: Colors.transparent,
+          child: Center(child: CircularProgressIndicator()),
+        );
+      },
+    );
+    return context;
   }
 }
