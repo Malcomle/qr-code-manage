@@ -61,6 +61,13 @@ class _FirstRouteState extends State<FirstRoute> {
                         SizedBox(
                           width: width * 0.75,
                           child: TextFormField(
+                            decoration: InputDecoration(
+                              hintText: 'Enter a message',
+                              suffixIcon: IconButton(
+                                onPressed: redirectInput.clear,
+                                icon: Icon(Icons.clear),
+                              ),
+                            ),
                             controller: redirectInput,
                             validator: (String? value) {
                               if (value == null || value.isEmpty) {
