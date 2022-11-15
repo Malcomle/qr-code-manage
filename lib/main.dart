@@ -36,6 +36,7 @@ class _FirstRouteState extends State<FirstRoute> {
   @override
   void initState() {
     super.initState();
+    getData();
   }
 
   @override
@@ -47,105 +48,92 @@ class _FirstRouteState extends State<FirstRoute> {
           title: Text("QR_Code : Modification"),
         ),
         body: Column(children: [
-          FutureBuilder(
-            future: getData(),
-            builder: (context, AsyncSnapshot<RedirectModel?> snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return Form(
-                    key: _formKey,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
-                            children: [
-                              SizedBox(
-                                width: width * 0.75,
-                                child: TextFormField(
-                                  controller: redirectInput,
-                                  validator: (String? value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter some text';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              SizedBox(
-                                child: Switch(
-                                  value: isSwitched,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isSwitched = value;
-                                      print(isSwitched);
-                                    });
-                                    updateRedirect();
-                                  },
-                                  activeTrackColor: Colors.lightGreenAccent,
-                                  activeColor: Colors.green,
-                                ),
-                              ),
-                            ],
+          Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: width * 0.75,
+                          child: TextFormField(
+                            controller: redirectInput,
+                            validator: (String? value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter some text';
+                              }
+                              return null;
+                            },
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              RawMaterialButton(
-                                onPressed: () {
-                                  addToFavorite();
-                                },
-                                elevation: 2.0,
-                                fillColor: Colors.white,
-                                child: Icon(
-                                  Icons.favorite,
-                                  size: 18.0,
-                                ),
-                                padding: EdgeInsets.all(15.0),
-                                shape: CircleBorder(),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16.0),
-                                child: ElevatedButton(
-                                  style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateColor.resolveWith(
-                                              (states) => Colors.red)),
-                                  onPressed: () {
-                                    if (_formKey.currentState!.validate()) {
-                                      redirectInput.text = "";
-                                    }
-                                  },
-                                  child: const Text('Effacer'),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 10),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 16.0),
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      if (_formKey.currentState!.validate()) {
-                                        submitForm();
-                                      }
-                                    },
-                                    child: const Text('Modifier'),
-                                  ),
-                                ),
-                              ),
-                            ],
+                        ),
+                        SizedBox(
+                          child: Switch(
+                            value: isSwitched,
+                            onChanged: (value) {
+                              setState(() {
+                                isSwitched = value;
+                                print(isSwitched);
+                              });
+                              updateRedirect();
+                            },
+                            activeTrackColor: Colors.lightGreenAccent,
+                            activeColor: Colors.green,
                           ),
-                        ],
-                      ),
-                    ));
-              } else if (snapshot.connectionState == ConnectionState.none) {
-                return Text("No data");
-              }
-              return CircularProgressIndicator();
-            },
-          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        RawMaterialButton(
+                          onPressed: () {
+                            addToFavorite();
+                          },
+                          elevation: 2.0,
+                          fillColor: Colors.white,
+                          child: Icon(
+                            Icons.favorite,
+                            size: 18.0,
+                          ),
+                          padding: EdgeInsets.all(15.0),
+                          shape: CircleBorder(),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                                backgroundColor: MaterialStateColor.resolveWith(
+                                    (states) => Colors.red)),
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                redirectInput.text = "";
+                              }
+                            },
+                            child: const Text('Effacer'),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  submitForm();
+                                }
+                              },
+                              child: const Text('Modifier'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              )),
           const Text(
             "Historique : ",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
