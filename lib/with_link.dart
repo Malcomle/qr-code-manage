@@ -88,20 +88,6 @@ class _WithLinkState extends State<WithLink> {
                       shape: CircleBorder(),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: ElevatedButton(
-                        style: ButtonStyle(
-                            backgroundColor: MaterialStateColor.resolveWith(
-                                (states) => Colors.red)),
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            redirectInput.text = "";
-                          }
-                        },
-                        child: const Text('Effacer'),
-                      ),
-                    ),
-                    Padding(
                       padding: const EdgeInsets.only(left: 10),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
