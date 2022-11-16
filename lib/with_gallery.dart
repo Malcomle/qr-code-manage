@@ -26,12 +26,6 @@ class _WithGalleryState extends State<WithGallery> {
     super.initState();
   }
 
-  void setItem(File itemValue) {
-    _image = itemValue;
-    Future.delayed(Duration(seconds: 3));
-    uploadImage(_image);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,26 +81,7 @@ class _WithGalleryState extends State<WithGallery> {
             bottom: 30.0,
             child: RawMaterialButton(
               onPressed: () {
-                var res = getImage();
-              },
-              elevation: 8.0,
-              fillColor: Colors.cyan,
-              child: Icon(
-                Icons.photo,
-                size: 18.0,
-              ),
-              padding: EdgeInsets.all(15.0),
-              shape: CircleBorder(),
-            ),
-          ),
-          Positioned(
-            right: 90.0,
-            bottom: 30.0,
-            child: RawMaterialButton(
-              onPressed: () {
-                if (_image != null) {
-                  return uploadImage(_image);
-                }
+                uploadImage();
               },
               elevation: 8.0,
               fillColor: Colors.cyan,
@@ -125,17 +100,15 @@ class _WithGalleryState extends State<WithGallery> {
 
   getImage() async {
     // You can also change the source to gallery like this: "source: ImageSource.camera"
-    var pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      } else {
-        print('No image has been selected.');
-      }
-    });
+
+    setState(() {});
   }
 
-  uploadImage(img) async {
+  uploadImage() async {
+    var pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    var img = File(pickedFile!.path);
+
     var modal = _onLoading();
 
     await Firebase.initializeApp();
@@ -182,7 +155,6 @@ class _WithGalleryState extends State<WithGallery> {
                           },
                         ),
                       ));
-                      return url;
                     }).catchError((onError) {
                       print("Got Error $onError");
                     })
