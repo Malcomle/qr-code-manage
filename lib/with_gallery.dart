@@ -8,6 +8,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
+import 'models/redirect-model.dart';
+
 class WithGallery extends StatefulWidget {
   const WithGallery({super.key});
 
@@ -20,40 +22,110 @@ class _WithGalleryState extends State<WithGallery> {
   final picker = ImagePicker();
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  void setItem(File itemValue) {
+    _image = itemValue;
+    Future.delayed(Duration(seconds: 3));
+    uploadImage(_image);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-          child: _image == null
-              ? Center(
-                  child: ElevatedButton(
-                    child: const Icon(Icons.add_a_photo_outlined),
-                    onPressed: () => getImage(),
-                  ),
-                )
-              : Center(
-                  child: Image.file(_image!),
-                )),
-      floatingActionButton: RawMaterialButton(
-        onPressed: () {
-          if (_image != null) {
-            return uploadImage(_image);
-          }
-        },
-        elevation: 2.0,
-        fillColor: Colors.white,
-        child: Icon(
-          Icons.favorite,
-          size: 18.0,
-        ),
-        padding: EdgeInsets.all(15.0),
-        shape: CircleBorder(),
+      body: Stack(
+        children: [
+          Container(
+            /*child: _image == null
+                ? Center(
+                    child: ElevatedButton(
+                      child: const Icon(Icons.add_a_photo_outlined),
+                      onPressed: () => getImage(),
+                    ),
+                  )
+                : Center(
+                    child: Image.file(_image!),
+                  )),
+                  elevation: 2.0,
+          fillColor: Colors.white,
+          child: Icon(
+            Icons.favorite,
+            size: 18.0,
+          ),
+          padding: EdgeInsets.all(15.0),
+          shape: CircleBorder(),*/
+
+            child: FutureBuilder<List<RedirectModel>>(
+              future: getHistory(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return GridView.builder(
+                      itemCount: snapshot.data!.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2),
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: FittedBox(
+                              fit: BoxFit.fill,
+                              child: Image.network(
+                                  "${snapshot.data![index].redirect}")),
+                        );
+                      });
+                } else if (snapshot.hasError) {
+                  return Text("Error");
+                }
+                return Text("Loading...");
+              },
+            ),
+          ),
+          Positioned(
+            right: 30.0,
+            bottom: 30.0,
+            child: RawMaterialButton(
+              onPressed: () {
+                var res = getImage();
+              },
+              elevation: 8.0,
+              fillColor: Colors.cyan,
+              child: Icon(
+                Icons.photo,
+                size: 18.0,
+              ),
+              padding: EdgeInsets.all(15.0),
+              shape: CircleBorder(),
+            ),
+          ),
+          Positioned(
+            right: 90.0,
+            bottom: 30.0,
+            child: RawMaterialButton(
+              onPressed: () {
+                if (_image != null) {
+                  return uploadImage(_image);
+                }
+              },
+              elevation: 8.0,
+              fillColor: Colors.cyan,
+              child: Icon(
+                Icons.photo,
+                size: 18.0,
+              ),
+              padding: EdgeInsets.all(15.0),
+              shape: CircleBorder(),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   getImage() async {
     // You can also change the source to gallery like this: "source: ImageSource.camera"
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    var pickedFile = await picker.pickImage(source: ImageSource.gallery);
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
@@ -119,6 +191,27 @@ class _WithGalleryState extends State<WithGallery> {
     } on firebase_core.FirebaseException catch (e) {
       print(e);
     }
+  }
+
+  Future<List<RedirectModel>> getHistory() async {
+    var url = "img";
+    await Firebase.initializeApp();
+    var getHistory = await FirebaseFirestore.instance
+        .collection("history")
+        .where("type", isEqualTo: url)
+        .limit(50)
+        .get();
+
+    var docs = getHistory.docs;
+    List<RedirectModel> docsMap = [];
+
+    docs.forEach((doc) {
+      var test = doc.data();
+      RedirectModel model = RedirectModel.fromJson(test);
+      docsMap.add(model);
+    });
+
+    return docsMap;
   }
 
   BuildContext _onLoading() {
