@@ -61,12 +61,18 @@ class _WithGalleryState extends State<WithGallery> {
                           const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2),
                       itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: FittedBox(
-                              fit: BoxFit.fill,
-                              child: Image.network(
-                                  "${snapshot.data![index].redirect}")),
+                        return GestureDetector(
+                          onTap: () {
+                            uploadImageWithoutHistory(
+                                snapshot.data![index].redirect!);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(15.0),
+                            child: FittedBox(
+                                fit: BoxFit.fill,
+                                child: Image.network(
+                                    "${snapshot.data![index].redirect}")),
+                          ),
                         );
                       });
                 } else if (snapshot.hasError) {
@@ -102,6 +108,24 @@ class _WithGalleryState extends State<WithGallery> {
     // You can also change the source to gallery like this: "source: ImageSource.camera"
 
     setState(() {});
+  }
+
+  uploadImageWithoutHistory(String img) async {
+    var modal = _onLoading();
+    var fbRedirect = await FirebaseFirestore.instance
+        .collection("redirect")
+        .doc("AOWHcTNEqq1OMosU0Fav")
+        .set({'redirect': "$img"});
+    Navigator.pop(modal);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: const Text('Redirection modifée'),
+      action: SnackBarAction(
+        label: 'Fermer',
+        onPressed: () {
+          // Some code to undo the change.
+        },
+      ),
+    ));
   }
 
   uploadImage() async {
