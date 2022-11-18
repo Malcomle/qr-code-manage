@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 import 'models/redirect-model.dart';
 
@@ -19,6 +20,7 @@ class WithGallery extends StatefulWidget {
 
 class _WithGalleryState extends State<WithGallery> {
   File? _image;
+
   final picker = ImagePicker();
 
   @override
@@ -32,25 +34,6 @@ class _WithGalleryState extends State<WithGallery> {
       body: Stack(
         children: [
           Container(
-            /*child: _image == null
-                ? Center(
-                    child: ElevatedButton(
-                      child: const Icon(Icons.add_a_photo_outlined),
-                      onPressed: () => getImage(),
-                    ),
-                  )
-                : Center(
-                    child: Image.file(_image!),
-                  )),
-                  elevation: 2.0,
-          fillColor: Colors.white,
-          child: Icon(
-            Icons.favorite,
-            size: 18.0,
-          ),
-          padding: EdgeInsets.all(15.0),
-          shape: CircleBorder(),*/
-
             child: FutureBuilder<List<RedirectModel>>(
               future: getHistory(),
               builder: (context, snapshot) {
@@ -62,18 +45,19 @@ class _WithGalleryState extends State<WithGallery> {
                               crossAxisCount: 2),
                       itemBuilder: (context, index) {
                         return GestureDetector(
-                          onTap: () {
-                            uploadImageWithoutHistory(
-                                snapshot.data![index].redirect!);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(15.0),
-                            child: FittedBox(
+                            onTap: () {
+                              uploadImageWithoutHistory(
+                                  snapshot.data![index].redirect!);
+                            },
+                            child: ZoomTapAnimation(
+                                child: Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: FittedBox(
                                 fit: BoxFit.fill,
-                                child: Image.network(
-                                    "${snapshot.data![index].redirect}")),
-                          ),
-                        );
+                                child: Image.file(
+                                    File(snapshot.data![index].redirect!)),
+                              ),
+                            )));
                       });
                 } else if (snapshot.hasError) {
                   return Text("Error");
@@ -136,15 +120,34 @@ class _WithGalleryState extends State<WithGallery> {
     var modal = _onLoading();
 
     await Firebase.initializeApp();
+
     var random = new Random();
     var rand = random.nextInt(1000000000);
-    // Give the image a random name
     String name = "image:$rand";
+
+    FirebaseFirestore.instance.collection("history").add({
+      "redirect": img.path,
+      "date": FieldValue.serverTimestamp(),
+      "type": "img"
+    });
+
+    var fbRedirect = await FirebaseFirestore.instance
+        .collection("redirect")
+        .doc("AOWHcTNEqq1OMosU0Fav")
+        .get();
+
+    var data = fbRedirect.data();
+    RedirectModel redirectModel = RedirectModel.fromJson(data!);
+
+    if (redirectModel.type == "img") {
+      firebase_storage.FirebaseStorage.instance
+          .refFromURL(redirectModel.redirect!)
+          .delete();
+    }
+
     try {
       await firebase_storage.FirebaseStorage.instance
-          // Give the image a name
           .ref('$name.jpg')
-          // Upload image to firebase
           .putFile(img)
           .then((taskSnapshot) => {
                 if (taskSnapshot.state == TaskState.success)
@@ -153,18 +156,10 @@ class _WithGalleryState extends State<WithGallery> {
                         .ref('$name.jpg')
                         .getDownloadURL()
                         .then((url) async {
-                      var fbRedirect = await FirebaseFirestore.instance
+                      var fbRedirect = FirebaseFirestore.instance
                           .collection("redirect")
                           .doc("AOWHcTNEqq1OMosU0Fav")
-                          .set({'redirect': "$url"});
-
-                      var getHistory = await FirebaseFirestore.instance
-                          .collection("history")
-                          .add({
-                        "redirect": url,
-                        "date": FieldValue.serverTimestamp(),
-                        "type": "img"
-                      });
+                          .set({'redirect': url, 'type': 'img'});
 
                       Navigator.pop(modal);
                       //FirebaseStorage.instance.refFromURL(url).delete();
@@ -201,9 +196,10 @@ class _WithGalleryState extends State<WithGallery> {
     var docs = getHistory.docs;
     List<RedirectModel> docsMap = [];
 
-    docs.forEach((doc) {
+    docs.forEach((doc) async {
       var test = doc.data();
       RedirectModel model = RedirectModel.fromJson(test);
+      //var image = Image.file(File(model.redirect!));
       docsMap.add(model);
     });
 

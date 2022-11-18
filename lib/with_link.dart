@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'models/is-redirect-model.dart';
 import 'models/redirect-model.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class WithLink extends StatefulWidget {
   const WithLink({super.key});
@@ -117,7 +118,7 @@ class _WithLinkState extends State<WithLink> {
           future: getHistory(),
           builder: (context, AsyncSnapshot<List<RedirectModel>> snapshot) {
             if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: Text(''));
             } else {
               return Container(
                   child: Expanded(
@@ -151,7 +152,7 @@ class _WithLinkState extends State<WithLink> {
           future: getFav(),
           builder: (context, AsyncSnapshot<List<RedirectModel>> snapshot) {
             if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: Text(''));
             } else {
               return Container(
                   child: Expanded(
@@ -213,10 +214,24 @@ class _WithLinkState extends State<WithLink> {
   }
 
   submitForm() async {
-    var fbRedirect = await FirebaseFirestore.instance
+    var getRedirect = await FirebaseFirestore.instance
         .collection("redirect")
         .doc("AOWHcTNEqq1OMosU0Fav")
-        .set({'redirect': "${redirectInput.value.text}"});
+        .get();
+
+    var data = getRedirect.data();
+    RedirectModel redirectModel = RedirectModel.fromJson(data!);
+
+    if (redirectModel.type == "img") {
+      firebase_storage.FirebaseStorage.instance
+          .refFromURL(redirectModel.redirect!)
+          .delete();
+    }
+
+    var updateRedirect = await FirebaseFirestore.instance
+        .collection("redirect")
+        .doc("AOWHcTNEqq1OMosU0Fav")
+        .set({'redirect': "${redirectInput.value.text}", 'type': 'url'});
 
     var getHistory =
         await FirebaseFirestore.instance.collection("history").add({
