@@ -1,22 +1,19 @@
-import 'package:MonLienQr/maintenance.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'history_with_link.dart';
 import 'models/is-redirect-model.dart';
 import 'models/redirect-model.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
-class WithLink extends StatefulWidget {
-  const WithLink({super.key});
+class HistoryWithLink extends StatefulWidget {
+  const HistoryWithLink({super.key});
 
   @override
-  State<WithLink> createState() => _WithLinkState();
+  State<HistoryWithLink> createState() => _HistoryWithLinkState();
 }
 
-class _WithLinkState extends State<WithLink> {
+class _HistoryWithLinkState extends State<HistoryWithLink> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final redirectInput = TextEditingController();
   bool isSwitched = false;
@@ -24,10 +21,7 @@ class _WithLinkState extends State<WithLink> {
   @override
   void initState() {
     super.initState();
-
-    Future.delayed(Duration.zero, () {
-      getData();
-    });
+    getData();
   }
 
   @override
@@ -35,21 +29,7 @@ class _WithLinkState extends State<WithLink> {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        actions: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(right: 20.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const EnMaintenance()),
-                  );
-                },
-                child: Icon(Icons.history),
-              )),
-        ],
-        title: Text("QR_Code : Modification"),
+        title: Text("QR_Code : Historique"),
       ),
       body: Column(children: [
         Form(
@@ -80,7 +60,7 @@ class _WithLinkState extends State<WithLink> {
                           },
                         ),
                       ),
-                      /*SizedBox(
+                      SizedBox(
                         child: Switch(
                           value: isSwitched,
                           onChanged: (value) {
@@ -88,12 +68,12 @@ class _WithLinkState extends State<WithLink> {
                               isSwitched = value;
                               print(isSwitched);
                             });
-                            //updateRedirect();
+                            updateRedirect();
                           },
                           activeTrackColor: Colors.lightGreenAccent,
                           activeColor: Colors.green,
                         ),
-                      ),*/
+                      ),
                     ],
                   ),
                   Row(
@@ -132,14 +112,14 @@ class _WithLinkState extends State<WithLink> {
               ),
             )),
         const Text(
-          "Favoris : ",
+          "Historique : ",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         Divider(
           height: 10,
         ),
         FutureBuilder(
-            future: getFav(),
+            future: getHistory(),
             builder: (context, AsyncSnapshot<List<RedirectModel>> snapshot) {
               if (!snapshot.hasData) {
                 return const Center(child: Text(''));
@@ -154,16 +134,6 @@ class _WithLinkState extends State<WithLink> {
                           onTap: () {
                             redirectInput.text =
                                 snapshot.data![index].redirect!;
-
-                            SnackBar(
-                              content: const Text('Yay! A SnackBar!'),
-                              action: SnackBarAction(
-                                label: 'Undo',
-                                onPressed: () {
-                                  // Some code to undo the change.
-                                },
-                              ),
-                            );
                           },
                           child: SizedBox(
                             width: width,
@@ -181,25 +151,19 @@ class _WithLinkState extends State<WithLink> {
   }
 
   Future<RedirectModel> getData() async {
-    //var contextData = _onLoading();
-    var user = FirebaseAuth.instance.currentUser!.uid;
+    var contextData = _onLoading();
     await Firebase.initializeApp();
     var fbRedirect = await FirebaseFirestore.instance
         .collection("redirect")
-        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .doc("AOWHcTNEqq1OMosU0Fav")
         .get();
-    if (!fbRedirect.exists) {
-      var fbRedirect = await FirebaseFirestore.instance
-          .collection("redirect")
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .set({
-        "redirect": "https://google.com",
-        "type": "url",
-        "isRedirect": true
-      });
-    }
 
-    var databool = fbRedirect.data()!['isRedirect'];
+    var fbIsRedirect = await FirebaseFirestore.instance
+        .collection("redirect")
+        .doc("cR1FRK9sulvd22pEfvk3")
+        .get();
+
+    var databool = fbIsRedirect.data();
     IsRedirectModel redirectModel2 = IsRedirectModel.fromJson(databool!);
     isSwitched = redirectModel2.isRedirect!;
 
@@ -207,14 +171,14 @@ class _WithLinkState extends State<WithLink> {
     RedirectModel redirectModel = RedirectModel.fromJson(data!);
     redirectInput.text = redirectModel.redirect!;
 
-    //Navigator.pop(contextData);
+    Navigator.pop(contextData);
     return redirectModel;
   }
 
   submitForm() async {
     var getRedirect = await FirebaseFirestore.instance
         .collection("redirect")
-        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .doc("AOWHcTNEqq1OMosU0Fav")
         .get();
 
     var data = getRedirect.data();
@@ -228,19 +192,11 @@ class _WithLinkState extends State<WithLink> {
 
     var updateRedirect = await FirebaseFirestore.instance
         .collection("redirect")
-        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .doc("AOWHcTNEqq1OMosU0Fav")
         .set({
-      'redirect': "${redirectInput.value.text}",
-      'type': 'url',
-      "isRedirect": true
-    });
-
-    var getHistory =
-        await FirebaseFirestore.instance.collection("history").add({
       "redirect": redirectInput.value.text,
       "date": FieldValue.serverTimestamp(),
-      "type": "url",
-      "user": FirebaseAuth.instance.currentUser!.uid
+      "type": "url"
     });
 
     setState(() {});
@@ -255,10 +211,10 @@ class _WithLinkState extends State<WithLink> {
     ));
   }
 
-  /*updateRedirect() async {
+  updateRedirect() async {
     var fbRedirect = FirebaseFirestore.instance
         .collection("redirect")
-        .doc(FirebaseAuth.instance.currentUser!.uid);
+        .doc("cR1FRK9sulvd22pEfvk3");
 
     var dataRed = await fbRedirect.get();
     var data = dataRed.data();
@@ -286,16 +242,33 @@ class _WithLinkState extends State<WithLink> {
         ),
       ));
     }
-  }*/
+  }
+
+  Future<List<RedirectModel>> getHistory() async {
+    var url = "url";
+    await Firebase.initializeApp();
+    var getHistory = await FirebaseFirestore.instance
+        .collection("history")
+        .where("type", isEqualTo: url)
+        .limit(50)
+        .get();
+
+    var docs = getHistory.docs;
+    List<RedirectModel> docsMap = [];
+
+    docs.forEach((doc) {
+      var test = doc.data();
+      RedirectModel model = RedirectModel.fromJson(test);
+      docsMap.add(model);
+    });
+
+    return docsMap;
+  }
 
   addToFavorite() async {
     var isExist = await FirebaseFirestore.instance
         .collection("fav")
         .where("redirect", isEqualTo: redirectInput.value.text)
-        .where(
-          "user",
-          isEqualTo: FirebaseAuth.instance.currentUser!.uid,
-        )
         .get();
 
     if (isExist.size >= 1) {
@@ -314,8 +287,7 @@ class _WithLinkState extends State<WithLink> {
       var fbRedirect = FirebaseFirestore.instance.collection("fav").add({
         "redirect": redirectInput.value.text,
         "date": FieldValue.serverTimestamp(),
-        "type": "url",
-        "user": FirebaseAuth.instance.currentUser!.uid
+        "type": "url"
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -331,29 +303,7 @@ class _WithLinkState extends State<WithLink> {
     setState(() {});
   }
 
-  Future<List<RedirectModel>> getFav() async {
-    await Firebase.initializeApp();
-    var getHistory = await FirebaseFirestore.instance
-        .collection("fav")
-        .where("type", isEqualTo: 'url')
-        .where("user", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .get();
-
-    var docs = getHistory.docs;
-    List<RedirectModel> docsMap = [];
-
-    if (docs.isEmpty) {
-      return [];
-    }
-    docs.forEach((doc) {
-      var test = doc.data();
-      RedirectModel model = RedirectModel.fromJson(test);
-      docsMap.add(model);
-    });
-    return docsMap;
-  }
-
-  /*BuildContext _onLoading() {
+  BuildContext _onLoading() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -365,5 +315,5 @@ class _WithLinkState extends State<WithLink> {
       },
     );
     return context;
-  }*/
+  }
 }

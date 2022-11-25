@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:io';
-import 'package:MonLienQr/history_with_gallery.dart';
+import 'package:MonLienQr/home.dart';
+import 'package:MonLienQr/with_gallery.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -10,16 +11,17 @@ import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
+import 'main.dart';
 import 'models/redirect-model.dart';
 
-class WithGallery extends StatefulWidget {
-  const WithGallery({super.key});
+class HistoryWithGallery extends StatefulWidget {
+  const HistoryWithGallery({super.key});
 
   @override
-  State<WithGallery> createState() => _WithGalleryState();
+  State<HistoryWithGallery> createState() => _HistoryWithGallery();
 }
 
-class _WithGalleryState extends State<WithGallery> {
+class _HistoryWithGallery extends State<HistoryWithGallery> {
   File? _image;
 
   final picker = ImagePicker();
@@ -41,10 +43,12 @@ class _WithGalleryState extends State<WithGallery> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const HistoryWithGallery()),
+                        builder: (context) => Home(
+                              selectedIndex: 1,
+                            )),
                   );
                 },
-                child: Icon(Icons.history),
+                child: Icon(Icons.arrow_back_ios),
               )),
         ],
         title: Text("QR_Code : Modification"),
@@ -53,7 +57,7 @@ class _WithGalleryState extends State<WithGallery> {
         children: [
           Container(
             child: FutureBuilder<List<RedirectModel>>(
-              future: getFav(),
+              future: getHistory(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return GridView.builder(
@@ -68,7 +72,7 @@ class _WithGalleryState extends State<WithGallery> {
                                   snapshot.data![index].redirect!);
                             },
                             onDoubleTap: () {
-                              deleteToFav(snapshot.data![index].redirect!);
+                              addToFav(snapshot.data![index].redirect!);
                             },
                             child: ZoomTapAnimation(
                                 child: Padding(
@@ -116,12 +120,12 @@ class _WithGalleryState extends State<WithGallery> {
   }
 
   uploadImageWithoutHistory(String img) async {
-    //var modal = _onLoading();
+    var modal = _onLoading();
     var fbRedirect = await FirebaseFirestore.instance
         .collection("redirect")
         .doc("AOWHcTNEqq1OMosU0Fav")
         .set({'redirect': "$img"});
-    //Navigator.pop(modal);
+    Navigator.pop(modal);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text('Redirection modifée'),
       action: SnackBarAction(
@@ -133,22 +137,14 @@ class _WithGalleryState extends State<WithGallery> {
     ));
   }
 
-  deleteToFav(String img) async {
-    //var modal = _onLoading();
-    var fav = await FirebaseFirestore.instance
-        .collection("fav")
-        .where("redirect", isEqualTo: img)
-        .get();
+  addToFav(String img) async {
+    var modal = _onLoading();
+    FirebaseFirestore.instance.collection("fav").add(
+        {"redirect": img, "date": FieldValue.serverTimestamp(), "type": "img"});
 
-    for (var favDoc in fav.docs) {
-      FirebaseFirestore.instance.collection("fav").doc("${favDoc.id}").delete();
-    }
-
-    setState(() {});
-
-    // Navigator.pop(modal);
+    Navigator.pop(modal);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: const Text('Supprimé des favoris'),
+      content: const Text('Ajoutée au favoris'),
       action: SnackBarAction(
         label: 'Fermer',
         onPressed: () {
@@ -163,19 +159,13 @@ class _WithGalleryState extends State<WithGallery> {
 
     var img = File(pickedFile!.path);
 
-    //var modal = _onLoading();
+    var modal = _onLoading();
 
     await Firebase.initializeApp();
 
     var random = new Random();
     var rand = random.nextInt(1000000000);
     String name = "image:$rand";
-
-    FirebaseFirestore.instance.collection("history").add({
-      "redirect": img.path,
-      "date": FieldValue.serverTimestamp(),
-      "type": "img"
-    });
 
     var fbRedirect = await FirebaseFirestore.instance
         .collection("redirect")
@@ -207,7 +197,7 @@ class _WithGalleryState extends State<WithGallery> {
                           .doc("AOWHcTNEqq1OMosU0Fav")
                           .set({'redirect': url, 'type': 'img'});
 
-                      //Navigator.pop(modal);
+                      Navigator.pop(modal);
                       //FirebaseStorage.instance.refFromURL(url).delete();
 
                       setState(() {});
@@ -230,21 +220,39 @@ class _WithGalleryState extends State<WithGallery> {
     }
   }
 
-  Future<List<RedirectModel>> getFav() async {
+  Future<List<RedirectModel>> getHistory() async {
+    var url = "img";
     await Firebase.initializeApp();
     var getHistory = await FirebaseFirestore.instance
-        .collection("fav")
-        .where("type", isEqualTo: 'img')
+        .collection("history")
+        .where("type", isEqualTo: url)
+        .limit(50)
         .get();
 
     var docs = getHistory.docs;
     List<RedirectModel> docsMap = [];
 
-    docs.forEach((doc) {
+    docs.forEach((doc) async {
       var test = doc.data();
       RedirectModel model = RedirectModel.fromJson(test);
+      //var image = Image.file(File(model.redirect!));
       docsMap.add(model);
     });
+
     return docsMap;
+  }
+
+  BuildContext _onLoading() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Dialog(
+          backgroundColor: Colors.transparent,
+          child: Center(child: CircularProgressIndicator()),
+        );
+      },
+    );
+    return context;
   }
 }

@@ -17,16 +17,19 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return android;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for android - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -49,21 +52,12 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCI5Uu39jtjHMAfa6rFmC7Xqfc-XERLG7U',
-    appId: '1:463691080498:android:18a6c5b750f0f2eb276d2b',
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyA_S_ZoQxF8RuStiuaJk8BEkGXi5ImQeOc',
+    appId: '1:463691080498:web:392b3a14f30cc705276d2b',
     messagingSenderId: '463691080498',
     projectId: 'qrcodemalcom',
+    authDomain: 'qrcodemalcom.firebaseapp.com',
     storageBucket: 'qrcodemalcom.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyANeTaXmAGvtMUUyl3nXOOmwzRF4a8cSe8',
-    appId: '1:463691080498:ios:f80d3a24892d9d49276d2b',
-    messagingSenderId: '463691080498',
-    projectId: 'qrcodemalcom',
-    storageBucket: 'qrcodemalcom.appspot.com',
-    iosClientId: '463691080498-2su3kop88l9lmnbn33nlppsnsvg8ee7k.apps.googleusercontent.com',
-    iosBundleId: 'com.example.qrcodeControl',
   );
 }
