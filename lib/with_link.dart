@@ -49,7 +49,7 @@ class _WithLinkState extends State<WithLink> {
                 child: Icon(Icons.history),
               )),
         ],
-        title: Text("QR_Code : Modification"),
+        title: Text("QR_Code : Modification V0.1.0"),
       ),
       body: Column(children: [
         Form(
