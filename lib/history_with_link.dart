@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -250,6 +251,7 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
     var getHistory = await FirebaseFirestore.instance
         .collection("history")
         .where("type", isEqualTo: url)
+        .where("user", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         .limit(50)
         .get();
 
@@ -269,6 +271,7 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
     var isExist = await FirebaseFirestore.instance
         .collection("fav")
         .where("redirect", isEqualTo: redirectInput.value.text)
+        .where("user", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         .get();
 
     if (isExist.size >= 1) {
@@ -287,7 +290,8 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
       var fbRedirect = FirebaseFirestore.instance.collection("fav").add({
         "redirect": redirectInput.value.text,
         "date": FieldValue.serverTimestamp(),
-        "type": "url"
+        "type": "url",
+        "user": FirebaseAuth.instance.currentUser!.uid
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

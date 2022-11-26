@@ -1,3 +1,5 @@
+import 'package:MonLienQr/history_with_gallery.dart';
+import 'package:MonLienQr/history_with_link.dart';
 import 'package:MonLienQr/home.dart';
 import 'package:MonLienQr/with_gallery.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -38,12 +40,10 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        // When navigating to the "/" route, build the FirstScreen widget.
         '/': (context) => const MyStatefulWidget(),
-        // When navigating to the "/second" route, build the SecondScreen widget.
-        '/home': (context) => const Home(
-              selectedIndex: 0,
-            ),
+        '/home': (context) => const Home(selectedIndex: 0),
+        '/link-history': (context) => const HistoryWithLink(),
+        '/link-gallery': (context) => const HistoryWithGallery(),
       },
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

@@ -43,13 +43,13 @@ class _WithLinkState extends State<WithLink> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const EnMaintenance()),
-                  );
+                        builder: (context) => const HistoryWithLink()),
+                  ).then((_) => {_refreshData()});
                 },
                 child: Icon(Icons.history),
               )),
         ],
-        title: Text("QR_Code : Modification V0.1.0"),
+        title: Text("QR_Code : Modification V0.1.2"),
       ),
       body: Column(children: [
         Form(
@@ -178,6 +178,11 @@ class _WithLinkState extends State<WithLink> {
             }),
       ]),
     );
+  }
+
+  _refreshData() {
+    getFav();
+    setState(() {});
   }
 
   Future<RedirectModel> getData() async {
