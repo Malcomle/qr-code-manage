@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'history_with_link.dart';
 import 'models/redirect-model.dart';
@@ -47,7 +48,7 @@ class _WithLinkState extends State<WithLink> {
                 child: Icon(Icons.history),
               )),
         ],
-        title: Text("QR_Code : Modification V0.1.6"),
+        title: Text("QR_Code : Modification V0.1.10"),
       ),
       body: Column(children: [
         Form(
@@ -187,7 +188,7 @@ class _WithLinkState extends State<WithLink> {
   }
 
   Future<RedirectModel> getData() async {
-    //var contextData = _onLoading();
+    EasyLoading.show();
     var user = FirebaseAuth.instance.currentUser!.uid;
     await Firebase.initializeApp();
     var fbRedirect = await FirebaseFirestore.instance
@@ -208,11 +209,12 @@ class _WithLinkState extends State<WithLink> {
     RedirectModel redirectModel = RedirectModel.fromJson(data!);
     redirectInput.text = redirectModel.redirect!;
 
-    //Navigator.pop(contextData);
+    EasyLoading.showSuccess("Et hop !");
     return redirectModel;
   }
 
   submitForm() async {
+    EasyLoading.show();
     var getRedirect = await FirebaseFirestore.instance
         .collection("redirect")
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -245,15 +247,7 @@ class _WithLinkState extends State<WithLink> {
     });
 
     setState(() {});
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: const Text('Redirection modifée'),
-      action: SnackBarAction(
-        label: 'Fermer',
-        onPressed: () {
-          // Some code to undo the change.
-        },
-      ),
-    ));
+    EasyLoading.showSuccess("Et hop !");
   }
 
   updateRedirect() async {
@@ -353,18 +347,4 @@ class _WithLinkState extends State<WithLink> {
     });
     return docsMap;
   }
-
-  /*BuildContext _onLoading() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const Dialog(
-          backgroundColor: Colors.transparent,
-          child: Center(child: CircularProgressIndicator()),
-        );
-      },
-    );
-    return context;
-  }*/
 }

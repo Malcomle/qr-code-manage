@@ -4,6 +4,7 @@ import 'package:MonLienQr/home.dart';
 import 'package:MonLienQr/with_gallery.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'firebase_options.dart';
 import 'with_link.dart';
@@ -39,6 +40,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: '/',
+      builder: EasyLoading.init(),
       routes: {
         '/': (context) => const MyStatefulWidget(),
         '/home': (context) => const Home(selectedIndex: 0),

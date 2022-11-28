@@ -5,7 +5,6 @@ import 'package:MonLienQr/with_gallery.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -24,7 +23,7 @@ class HistoryWithGallery extends StatefulWidget {
 class _HistoryWithGallery extends State<HistoryWithGallery> {
   File? _image;
 
-  final picker = ImagePicker();
+  //final picker = ImagePicker();
 
   @override
   void initState() {
@@ -155,7 +154,7 @@ class _HistoryWithGallery extends State<HistoryWithGallery> {
   }
 
   uploadImage() async {
-    var pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    var pickedFile = null;
 
     var img = File(pickedFile!.path);
 

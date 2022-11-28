@@ -1,13 +1,19 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:MonLienQr/history_with_gallery.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:image_picker_web/image_picker_web.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 import 'models/redirect-model.dart';
@@ -159,74 +165,55 @@ class _WithGalleryState extends State<WithGallery> {
   }
 
   uploadImage() async {
-    var pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
 
-    var img = File(pickedFile!.path);
+    EasyLoading.show(status: 'loading...');
 
-    //var modal = _onLoading();
+    if (result != null) {
+      Uint8List fileBytes = result.files.first.bytes!;
+      String fileName = result.files.first.name;
 
-    await Firebase.initializeApp();
+      // Upload file
+      try {
+        await FirebaseStorage.instance
+            .ref('uploads/$fileName')
+            .putData(fileBytes);
 
-    var random = new Random();
-    var rand = random.nextInt(1000000000);
-    String name = "image:$rand";
+        EasyLoading.showProgress(0.3, status: 'Loading...');
 
-    FirebaseFirestore.instance.collection("history").add({
-      "redirect": img.path,
-      "date": FieldValue.serverTimestamp(),
-      "type": "img"
-    });
+        var url = await FirebaseStorage.instance
+            .ref('uploads/$fileName')
+            .getDownloadURL();
 
-    var fbRedirect = await FirebaseFirestore.instance
-        .collection("redirect")
-        .doc("AOWHcTNEqq1OMosU0Fav")
-        .get();
+        EasyLoading.showProgress(0.6, status: 'Loading...');
 
-    var data = fbRedirect.data();
-    RedirectModel redirectModel = RedirectModel.fromJson(data!);
+        FirebaseFirestore.instance
+            .collection("redirect")
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .update({'redirect': url, 'type': 'img'});
+      } catch (e) {
+        EasyLoading.showError("Oh non pas ça!");
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Une erreur a eu lieu'),
+          action: SnackBarAction(
+            label: 'Fermer',
+            onPressed: () {},
+          ),
+        ));
+      }
 
-    if (redirectModel.type == "img") {
-      firebase_storage.FirebaseStorage.instance
-          .refFromURL(redirectModel.redirect!)
-          .delete();
-    }
-
-    try {
-      await firebase_storage.FirebaseStorage.instance
-          .ref('$name.jpg')
-          .putFile(img)
-          .then((taskSnapshot) => {
-                if (taskSnapshot.state == TaskState.success)
-                  {
-                    FirebaseStorage.instance
-                        .ref('$name.jpg')
-                        .getDownloadURL()
-                        .then((url) async {
-                      var fbRedirect = FirebaseFirestore.instance
-                          .collection("redirect")
-                          .doc("AOWHcTNEqq1OMosU0Fav")
-                          .set({'redirect': url, 'type': 'img'});
-
-                      //Navigator.pop(modal);
-                      //FirebaseStorage.instance.refFromURL(url).delete();
-
-                      setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('Redirection modifée'),
-                        action: SnackBarAction(
-                          label: 'Fermer',
-                          onPressed: () {
-                            // Some code to undo the change.
-                          },
-                        ),
-                      ));
-                    }).catchError((onError) {
-                      print("Got Error $onError");
-                    })
-                  }
-              });
-    } on firebase_core.FirebaseException catch (e) {
-      print(e);
+      EasyLoading.showSuccess("Et Hop!");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Redirection modifée'),
+        action: SnackBarAction(
+          label: 'Fermer',
+          onPressed: () {
+            // Some code to undo the change.
+          },
+        ),
+      ));
     }
   }
 
