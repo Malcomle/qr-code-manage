@@ -1,11 +1,9 @@
-import 'package:MonLienQr/maintenance.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'history_with_link.dart';
-import 'models/is-redirect-model.dart';
 import 'models/redirect-model.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
@@ -49,7 +47,7 @@ class _WithLinkState extends State<WithLink> {
                 child: Icon(Icons.history),
               )),
         ],
-        title: Text("QR_Code : Modification V0.1.5"),
+        title: Text("QR_Code : Modification V0.1.6"),
       ),
       body: Column(children: [
         Form(
@@ -265,7 +263,7 @@ class _WithLinkState extends State<WithLink> {
 
     var dataRed = await fbRedirect.get();
     var data = dataRed.data();
-    IsRedirectModel redirectModel = IsRedirectModel.fromJson(data!);
+    RedirectModel redirectModel = RedirectModel.fromJson(data!);
     if (redirectModel.isRedirect == true) {
       fbRedirect.update({"isRedirect": false});
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

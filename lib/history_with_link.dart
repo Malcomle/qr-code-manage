@@ -2,8 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-
-import 'models/is-redirect-model.dart';
 import 'models/redirect-model.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
@@ -17,7 +15,6 @@ class HistoryWithLink extends StatefulWidget {
 class _HistoryWithLinkState extends State<HistoryWithLink> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final redirectInput = TextEditingController();
-  bool isSwitched = false;
 
   @override
   void initState() {
@@ -43,7 +40,7 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
                   Row(
                     children: [
                       SizedBox(
-                        width: width * 0.75,
+                        width: width * 0.90,
                         child: TextFormField(
                           decoration: InputDecoration(
                             hintText: 'Enter a message',
@@ -59,20 +56,6 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
                             }
                             return null;
                           },
-                        ),
-                      ),
-                      SizedBox(
-                        child: Switch(
-                          value: isSwitched,
-                          onChanged: (value) {
-                            setState(() {
-                              isSwitched = value;
-                              print(isSwitched);
-                            });
-                            updateRedirect();
-                          },
-                          activeTrackColor: Colors.lightGreenAccent,
-                          activeColor: Colors.green,
                         ),
                       ),
                     ],
@@ -163,10 +146,6 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
         .doc("cR1FRK9sulvd22pEfvk3")
         .get();
 
-    var databool = fbIsRedirect.data();
-    IsRedirectModel redirectModel2 = IsRedirectModel.fromJson(databool!);
-    isSwitched = redirectModel2.isRedirect!;
-
     var data = fbRedirect.data();
     RedirectModel redirectModel = RedirectModel.fromJson(data!);
     redirectInput.text = redirectModel.redirect!;
@@ -209,39 +188,6 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
         },
       ),
     ));
-  }
-
-  updateRedirect() async {
-    var fbRedirect = FirebaseFirestore.instance
-        .collection("redirect")
-        .doc("cR1FRK9sulvd22pEfvk3");
-
-    var dataRed = await fbRedirect.get();
-    var data = dataRed.data();
-    IsRedirectModel redirectModel = IsRedirectModel.fromJson(data!);
-    if (redirectModel.isRedirect == true) {
-      fbRedirect.set({"isRedirect": false});
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Redirection désactivé'),
-        action: SnackBarAction(
-          label: 'Fermer',
-          onPressed: () {
-            // Some code to undo the change.
-          },
-        ),
-      ));
-    } else {
-      fbRedirect.set({"isRedirect": true});
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Redirection activé'),
-        action: SnackBarAction(
-          label: 'Fermer',
-          onPressed: () {
-            // Some code to undo the change.
-          },
-        ),
-      ));
-    }
   }
 
   Future<List<RedirectModel>> getHistory() async {
