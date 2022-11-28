@@ -2,6 +2,7 @@ class RedirectModel {
   String? redirect;
   String? type;
   String? user;
+  bool? isRedirect;
 
   RedirectModel({this.redirect});
 
@@ -9,6 +10,7 @@ class RedirectModel {
     redirect = json['redirect'];
     user = json['user'];
     type = json['type'];
+    isRedirect = json['isRedirect'];
   }
 
   Map<String, dynamic> toJson(Map<String, dynamic>? test) {
@@ -16,6 +18,7 @@ class RedirectModel {
     data['redirect'] = this.redirect;
     data['type'] = this.type;
     data['user'] = this.user;
+    data['isRedirect'] = this.isRedirect;
     return data;
   }
 }

@@ -152,7 +152,6 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
   }
 
   Future<RedirectModel> getData() async {
-    var contextData = _onLoading();
     await Firebase.initializeApp();
     var fbRedirect = await FirebaseFirestore.instance
         .collection("redirect")
@@ -172,7 +171,7 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
     RedirectModel redirectModel = RedirectModel.fromJson(data!);
     redirectInput.text = redirectModel.redirect!;
 
-    Navigator.pop(contextData);
+    //Navigator.pop(contextData);
     return redirectModel;
   }
 
@@ -307,7 +306,7 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
     setState(() {});
   }
 
-  BuildContext _onLoading() {
+  /*BuildContext _onLoading() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -319,5 +318,5 @@ class _HistoryWithLinkState extends State<HistoryWithLink> {
       },
     );
     return context;
-  }
+  }*/
 }

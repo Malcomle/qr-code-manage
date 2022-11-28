@@ -49,7 +49,7 @@ class _WithLinkState extends State<WithLink> {
                 child: Icon(Icons.history),
               )),
         ],
-        title: Text("QR_Code : Modification V0.1.2"),
+        title: Text("QR_Code : Modification V0.1.5"),
       ),
       body: Column(children: [
         Form(
@@ -80,20 +80,23 @@ class _WithLinkState extends State<WithLink> {
                           },
                         ),
                       ),
-                      /*SizedBox(
-                        child: Switch(
-                          value: isSwitched,
-                          onChanged: (value) {
-                            setState(() {
-                              isSwitched = value;
-                              print(isSwitched);
-                            });
-                            //updateRedirect();
+                      SizedBox(
+                        child: FutureBuilder<RedirectModel>(
+                          future: getData(),
+                          builder: (context, _snapshot) {
+                            return Switch(
+                              value: _snapshot.data?.isRedirect ?? false,
+                              onChanged: (value) async {
+                                await updateRedirect();
+                                getData();
+                                setState(() {});
+                              },
+                              activeTrackColor: Colors.lightGreenAccent,
+                              activeColor: Colors.green,
+                            );
                           },
-                          activeTrackColor: Colors.lightGreenAccent,
-                          activeColor: Colors.green,
                         ),
-                      ),*/
+                      ),
                     ],
                   ),
                   Row(
@@ -203,11 +206,6 @@ class _WithLinkState extends State<WithLink> {
         "isRedirect": true
       });
     }
-
-    var databool = fbRedirect.data()!['isRedirect'];
-    IsRedirectModel redirectModel2 = IsRedirectModel.fromJson(databool!);
-    isSwitched = redirectModel2.isRedirect!;
-
     var data = fbRedirect.data();
     RedirectModel redirectModel = RedirectModel.fromJson(data!);
     redirectInput.text = redirectModel.redirect!;
@@ -260,7 +258,7 @@ class _WithLinkState extends State<WithLink> {
     ));
   }
 
-  /*updateRedirect() async {
+  updateRedirect() async {
     var fbRedirect = FirebaseFirestore.instance
         .collection("redirect")
         .doc(FirebaseAuth.instance.currentUser!.uid);
@@ -269,7 +267,7 @@ class _WithLinkState extends State<WithLink> {
     var data = dataRed.data();
     IsRedirectModel redirectModel = IsRedirectModel.fromJson(data!);
     if (redirectModel.isRedirect == true) {
-      fbRedirect.set({"isRedirect": false});
+      fbRedirect.update({"isRedirect": false});
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Redirection désactivé'),
         action: SnackBarAction(
@@ -280,7 +278,7 @@ class _WithLinkState extends State<WithLink> {
         ),
       ));
     } else {
-      fbRedirect.set({"isRedirect": true});
+      fbRedirect.update({"isRedirect": true});
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Redirection activé'),
         action: SnackBarAction(
@@ -291,7 +289,7 @@ class _WithLinkState extends State<WithLink> {
         ),
       ));
     }
-  }*/
+  }
 
   addToFavorite() async {
     var isExist = await FirebaseFirestore.instance
