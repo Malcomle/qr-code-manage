@@ -173,18 +173,17 @@ class _WithGalleryState extends State<WithGallery> {
 
     if (result != null) {
       Uint8List fileBytes = result.files.first.bytes!;
-      String fileName = result.files.first.name;
 
       // Upload file
       try {
         await FirebaseStorage.instance
-            .ref('uploads/$fileName')
+            .ref('uploads/${FirebaseAuth.instance.currentUser!.uid}')
             .putData(fileBytes);
 
         EasyLoading.showProgress(0.3, status: 'Loading...');
 
         var url = await FirebaseStorage.instance
-            .ref('uploads/$fileName')
+            .ref('uploads/${FirebaseAuth.instance.currentUser!.uid}')
             .getDownloadURL();
 
         EasyLoading.showProgress(0.6, status: 'Loading...');
