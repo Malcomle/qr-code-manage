@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
 import 'dart:typed_data';
@@ -11,9 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_core/firebase_core.dart' as firebase_core;
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
-import 'package:image_picker_web/image_picker_web.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 import 'models/redirect-model.dart';
@@ -44,11 +40,11 @@ class _WithGalleryState extends State<WithGallery> {
               padding: EdgeInsets.only(right: 20.0),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => const HistoryWithGallery()),
-                  );
+                  ).then((_) => {_refreshData()});
                 },
                 child: Icon(Icons.history),
               )),
@@ -58,7 +54,7 @@ class _WithGalleryState extends State<WithGallery> {
       body: Stack(
         children: [
           Container(
-            child: FutureBuilder<List<RedirectModel>>(
+            child: FutureBuilder<List<Image>>(
               future: getFav(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
@@ -70,19 +66,17 @@ class _WithGalleryState extends State<WithGallery> {
                       itemBuilder: (context, index) {
                         return GestureDetector(
                             onTap: () {
-                              uploadImageWithoutHistory(
-                                  snapshot.data![index].redirect!);
+                              uploadImageWithoutHistory(index);
                             },
                             onDoubleTap: () {
-                              deleteToFav(snapshot.data![index].redirect!);
+                              deleteToFav(index);
                             },
                             child: ZoomTapAnimation(
                                 child: Padding(
                               padding: const EdgeInsets.all(15.0),
                               child: FittedBox(
                                 fit: BoxFit.fill,
-                                child: Image.file(
-                                    File(snapshot.data![index].redirect!)),
+                                child: snapshot.data![index],
                               ),
                             )));
                       });
@@ -115,18 +109,20 @@ class _WithGalleryState extends State<WithGallery> {
     );
   }
 
-  getImage() async {
-    // You can also change the source to gallery like this: "source: ImageSource.camera"
-
+  List<RedirectModel> myFav = [];
+  _refreshData() async {
+    myFav = [];
+    getFav();
     setState(() {});
   }
 
-  uploadImageWithoutHistory(String img) async {
+  uploadImageWithoutHistory(int index) async {
     //var modal = _onLoading();
+    var redirect = myFav[index];
     var fbRedirect = await FirebaseFirestore.instance
         .collection("redirect")
-        .doc("AOWHcTNEqq1OMosU0Fav")
-        .set({'redirect': "$img"});
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({'redirect': "${redirect.redirect}", 'type': 'img'});
     //Navigator.pop(modal);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text('Redirection modifée'),
@@ -139,11 +135,13 @@ class _WithGalleryState extends State<WithGallery> {
     ));
   }
 
-  deleteToFav(String img) async {
+  deleteToFav(int index) async {
     //var modal = _onLoading();
+    var deleteFav = myFav[index];
     var fav = await FirebaseFirestore.instance
         .collection("fav")
-        .where("redirect", isEqualTo: img)
+        .where("redirect", isEqualTo: deleteFav.redirect)
+        .where('user', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         .get();
 
     for (var favDoc in fav.docs) {
@@ -169,29 +167,53 @@ class _WithGalleryState extends State<WithGallery> {
       type: FileType.image,
     );
 
+    if (result == null) {
+      return;
+    }
+
     EasyLoading.show(status: 'loading...');
 
     if (result != null) {
       Uint8List fileBytes = result.files.first.bytes!;
-
+      var random = new Random();
+      var rand = random.nextInt(1000000000);
+      String name = "image:$rand";
       // Upload file
       try {
         await FirebaseStorage.instance
-            .ref('uploads/${FirebaseAuth.instance.currentUser!.uid}')
+            .ref('${FirebaseAuth.instance.currentUser!.uid}/$name')
             .putData(fileBytes);
 
         EasyLoading.showProgress(0.3, status: 'Loading...');
 
         var url = await FirebaseStorage.instance
-            .ref('uploads/${FirebaseAuth.instance.currentUser!.uid}')
+            .ref('${FirebaseAuth.instance.currentUser!.uid}/$name')
             .getDownloadURL();
 
         EasyLoading.showProgress(0.6, status: 'Loading...');
+
+        FirebaseFirestore.instance.collection("history").add({
+          "redirect": url,
+          "date": FieldValue.serverTimestamp(),
+          "type": "img",
+          "user": FirebaseAuth.instance.currentUser!.uid
+        });
 
         FirebaseFirestore.instance
             .collection("redirect")
             .doc(FirebaseAuth.instance.currentUser!.uid)
             .update({'redirect': url, 'type': 'img'});
+
+        EasyLoading.showSuccess("Et Hop!");
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Redirection modifée'),
+          action: SnackBarAction(
+            label: 'Fermer',
+            onPressed: () {
+              // Some code to undo the change.
+            },
+          ),
+        ));
       } catch (e) {
         EasyLoading.showError("Oh non pas ça!");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -202,34 +224,26 @@ class _WithGalleryState extends State<WithGallery> {
           ),
         ));
       }
-
-      EasyLoading.showSuccess("Et Hop!");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Redirection modifée'),
-        action: SnackBarAction(
-          label: 'Fermer',
-          onPressed: () {
-            // Some code to undo the change.
-          },
-        ),
-      ));
     }
   }
 
-  Future<List<RedirectModel>> getFav() async {
+  Future<List<Image>> getFav() async {
     await Firebase.initializeApp();
-    var getHistory = await FirebaseFirestore.instance
+    var getFav = await FirebaseFirestore.instance
         .collection("fav")
         .where("type", isEqualTo: 'img')
+        .where('user', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         .get();
 
-    var docs = getHistory.docs;
-    List<RedirectModel> docsMap = [];
+    var docs = getFav.docs;
+    List<Image> docsMap = [];
 
     docs.forEach((doc) {
       var test = doc.data();
       RedirectModel model = RedirectModel.fromJson(test);
-      docsMap.add(model);
+      var image = Image.network(model.redirect!);
+      myFav.add(model);
+      docsMap.add(image);
     });
     return docsMap;
   }

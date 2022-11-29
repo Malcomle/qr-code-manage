@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+
 class RedirectModel {
   String? redirect;
   String? type;
   String? user;
   bool? isRedirect;
+  late Image image;
 
   RedirectModel({this.redirect});
 

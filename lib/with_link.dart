@@ -48,7 +48,7 @@ class _WithLinkState extends State<WithLink> {
                 child: Icon(Icons.history),
               )),
         ],
-        title: Text("QR_Code : Modification V0.1.10"),
+        title: Text("QR_Code : Modification V0.2.1"),
       ),
       body: Column(children: [
         Form(
@@ -188,7 +188,6 @@ class _WithLinkState extends State<WithLink> {
   }
 
   Future<RedirectModel> getData() async {
-    EasyLoading.show();
     var user = FirebaseAuth.instance.currentUser!.uid;
     await Firebase.initializeApp();
     var fbRedirect = await FirebaseFirestore.instance
@@ -208,13 +207,10 @@ class _WithLinkState extends State<WithLink> {
     var data = fbRedirect.data();
     RedirectModel redirectModel = RedirectModel.fromJson(data!);
     redirectInput.text = redirectModel.redirect!;
-
-    EasyLoading.showSuccess("Et hop !");
     return redirectModel;
   }
 
   submitForm() async {
-    EasyLoading.show();
     var getRedirect = await FirebaseFirestore.instance
         .collection("redirect")
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -247,7 +243,16 @@ class _WithLinkState extends State<WithLink> {
     });
 
     setState(() {});
-    EasyLoading.showSuccess("Et hop !");
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: const Text('Redirection modifiée'),
+      action: SnackBarAction(
+        label: 'Fermer',
+        onPressed: () {
+          // Some code to undo the change.
+        },
+      ),
+    ));
   }
 
   updateRedirect() async {
