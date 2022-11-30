@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
@@ -173,58 +174,71 @@ class _WithGalleryState extends State<WithGallery> {
 
     EasyLoading.show(status: 'loading...');
 
-    if (result != null) {
-      Uint8List fileBytes = result.files.first.bytes!;
-      var random = new Random();
-      var rand = random.nextInt(1000000000);
-      String name = "image:$rand";
-      // Upload file
-      try {
-        await FirebaseStorage.instance
-            .ref('${FirebaseAuth.instance.currentUser!.uid}/$name')
-            .putData(fileBytes);
+    Uint8List fileBytes = result.files.first.bytes!;
 
-        EasyLoading.showProgress(0.3, status: 'Loading...');
+    fileBytes = await testComporessList(fileBytes);
 
-        var url = await FirebaseStorage.instance
-            .ref('${FirebaseAuth.instance.currentUser!.uid}/$name')
-            .getDownloadURL();
+    var random = new Random();
+    var rand = random.nextInt(1000000000);
+    String name = "image:$rand";
 
-        EasyLoading.showProgress(0.6, status: 'Loading...');
+    // Upload file
+    try {
+      await FirebaseStorage.instance
+          .ref('${FirebaseAuth.instance.currentUser!.uid}/$name')
+          .putData(fileBytes);
 
-        FirebaseFirestore.instance.collection("history").add({
-          "redirect": url,
-          "date": FieldValue.serverTimestamp(),
-          "type": "img",
-          "user": FirebaseAuth.instance.currentUser!.uid
-        });
+      EasyLoading.showProgress(0.3, status: 'Loading...');
 
-        FirebaseFirestore.instance
-            .collection("redirect")
-            .doc(FirebaseAuth.instance.currentUser!.uid)
-            .update({'redirect': url, 'type': 'img'});
+      var url = await FirebaseStorage.instance
+          .ref('${FirebaseAuth.instance.currentUser!.uid}/$name')
+          .getDownloadURL();
 
-        EasyLoading.showSuccess("Et Hop!");
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Redirection modifée'),
-          action: SnackBarAction(
-            label: 'Fermer',
-            onPressed: () {
-              // Some code to undo the change.
-            },
-          ),
-        ));
-      } catch (e) {
-        EasyLoading.showError("Oh non pas ça!");
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Une erreur a eu lieu'),
-          action: SnackBarAction(
-            label: 'Fermer',
-            onPressed: () {},
-          ),
-        ));
-      }
+      EasyLoading.showProgress(0.6, status: 'Loading...');
+
+      FirebaseFirestore.instance.collection("history").add({
+        "redirect": url,
+        "date": FieldValue.serverTimestamp(),
+        "type": "img",
+        "user": FirebaseAuth.instance.currentUser!.uid
+      });
+
+      FirebaseFirestore.instance
+          .collection("redirect")
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({'redirect': url, 'type': 'img'});
+
+      EasyLoading.showSuccess("Et Hop!");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Redirection modifée'),
+        action: SnackBarAction(
+          label: 'Fermer',
+          onPressed: () {
+            // Some code to undo the change.
+          },
+        ),
+      ));
+    } catch (e) {
+      EasyLoading.showError("Oh non pas ça!");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Une erreur a eu lieu'),
+        action: SnackBarAction(
+          label: 'Fermer',
+          onPressed: () {},
+        ),
+      ));
     }
+  }
+
+  Future<Uint8List> testComporessList(Uint8List list) async {
+    var result = await FlutterImageCompress.compressWithList(
+      list,
+      minHeight: 1920,
+      minWidth: 1080,
+      quality: 60,
+      rotate: 135,
+    );
+    return result;
   }
 
   Future<List<Image>> getFav() async {
