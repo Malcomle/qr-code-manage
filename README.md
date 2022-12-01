@@ -1,16 +1,27 @@
-# qrcode_control
 
-A new Flutter project.
+# Qr code managment 
 
-## Getting Started
+Un projet qui permet de contrôler la redirection d'un qr code.
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+## Fonctionnalités
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Inserer une url
+- Prendre une photo et l'envoyer
+- Prendre une photo dans la gallerie du téléphone et l'envoyer
+- Consulter l'historique des photos / url envoyés
+- Ajouter en favoris des photos / url envoyés
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+## Fonctionnement
+
+Cette application communique avec une base de données nosql firebase.
+Une autre application s'occupe de récupérer les données de cette BDD
+pour modifier la redirection du QRCODE.
+
+
+## Screenshots
+
+![App Screenshot](https://zupimages.net/up/22/48/4o2g.png)
+![App Screenshot](https://zupimages.net/up/22/48/096p.png)
+
