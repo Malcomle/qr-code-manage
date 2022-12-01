@@ -25,3 +25,17 @@ pour modifier la redirection du QRCODE.
 ![App Screenshot](https://zupimages.net/up/22/48/4o2g.png)
 ![App Screenshot](https://zupimages.net/up/22/48/096p.png)
 
+
+## Deployment
+
+Connecter une base de donnée firebase
+
+```bash
+  CLI : https://firebase.google.com/docs/cli#windows
+```
+
+```bash
+  Initialiser le projet : firebase init
+```
+
+
