@@ -39,7 +39,7 @@ class _FirstRouteState extends State<FirstRoute> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     WithLink(),
-    WithGallery()
+    WithGallery(),
   ];
 
   void _onItemTapped(int index) {

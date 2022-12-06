@@ -12,6 +12,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
+import 'package:giphy_picker/giphy_picker.dart';
 
 import 'models/redirect-model.dart';
 
@@ -105,6 +106,23 @@ class _WithGalleryState extends State<WithGallery> {
               shape: CircleBorder(),
             ),
           ),
+          Positioned(
+            right: 90.0,
+            bottom: 30.0,
+            child: RawMaterialButton(
+              onPressed: () {
+                getGif();
+              },
+              elevation: 8.0,
+              fillColor: Colors.blue,
+              child: Icon(
+                Icons.gif_box,
+                size: 18.0,
+              ),
+              padding: EdgeInsets.all(15.0),
+              shape: CircleBorder(),
+            ),
+          ),
         ],
       ),
     );
@@ -115,6 +133,36 @@ class _WithGalleryState extends State<WithGallery> {
     myFav = [];
     getFav();
     setState(() {});
+  }
+
+  getGif() async {
+    final gif = await GiphyPicker.pickGif(
+      context: context,
+      apiKey: 'ZOWF8SqrpuB8Ehmu1LtcnjOh5Xfxac4U',
+      fullScreenDialog: false,
+      previewType: GiphyPreviewType.previewWebp,
+      decorator: GiphyDecorator(
+        showAppBar: false,
+        searchElevation: 4,
+        giphyTheme: ThemeData.dark().copyWith(
+          inputDecorationTheme: InputDecorationTheme(
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ),
+    );
+
+    var urlGif = gif!.embedUrl;
+
+    var fbRedirect = await FirebaseFirestore.instance
+        .collection("redirect")
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({'redirect': "${urlGif}", 'type': 'url'});
+
+    return gif;
   }
 
   uploadImageWithoutHistory(int index) async {
